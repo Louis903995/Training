@@ -5,7 +5,9 @@ from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 import os
-import joblib
+from skl2onnx import convert_sklearn
+from skl2onnx.common.data_types import FloatTensorType
+import json
 
 print("Répertoire courant :", os.getcwd())
 print("Fichiers dans ce dossier :", os.listdir())
@@ -20,6 +22,13 @@ data['Produit'] = data['Produit'].str.normalize('NFKD').str.encode('ascii', erro
 # 3. TF-Idata Vectorization
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(data['Produit'])  # transforme en vecteur TF-Idata
+# Sauvegarder le vocabulaire et les valeurs IDF dans un fichier JSON
+vocab = vectorizer.vocabulary_
+idf = vectorizer.idf_
+with open("modeles/tfidf_params.json", "w") as f:
+    json.dump({"vocab": vocab, "idf": idf.tolist()}, f)
+
+
 y = data['Categories_OFF']  # Labels (catégories)
 
 # 4. Division en données d’entraînement et de test
@@ -32,6 +41,12 @@ lr_model.fit(X_train, y_train)
 y_pred_lr = lr_model.predict(X_test)
 print(classification_report(y_test, y_pred_lr))
 
+# Convertir et sauvegarder le modèle Logistic Regression en ONNX
+initial_type = [('float_input', FloatTensorType([None, X_train.shape[1]]))]
+onnx_lr = convert_sklearn(lr_model, initial_types=initial_type)
+with open("modeles/lr_model.onnx", "wb") as f:
+    f.write(onnx_lr.SerializeToString())
+
 # 6. Modèle 2 : SVM
 print("\n=== Support Vector Machine (SVM) ===")
 svm_model = SVC(kernel='linear', probability=True)
@@ -41,9 +56,7 @@ print(classification_report(y_test, y_pred_svm))
 
 # Création du dossier 'modeles' s'il n'existe pas
 #os.makedirs("modeles", exist_ok=True)
-
-# Sauvegarde du modèle de régression logistique
-joblib.dump(lr_model, "modeles/logreg_model.joblib")
-
-# Sauvegarde du vectorizer
-joblib.dump(vectorizer, "modeles/vectorizer.joblib")
+# Convertir et sauvegarder le modèle SVM en ONNX
+onnx_svm = convert_sklearn(svm_model, initial_types=initial_type)
+with open("modeles/svm_model.onnx", "wb") as f:
+    f.write(onnx_svm.SerializeToString())
