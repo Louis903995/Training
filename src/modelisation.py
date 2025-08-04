@@ -43,7 +43,7 @@ print(classification_report(y_test, y_pred_svm))
 #os.makedirs("modeles", exist_ok=True)
 
 # Sauvegarde du modèle de régression logistique
-joblib.dump(lr_model, "modeles/logreg_model.joblib")
+#joblib.dump(lr_model, "modeles/logreg_model.joblib")
 
 # Sauvegarde du vectorizer
-joblib.dump(vectorizer, "modeles/vectorizer.joblib")
+#joblib.dump(vectorizer, "modeles/vectorizer.joblib")
