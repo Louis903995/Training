@@ -20,7 +20,7 @@ table = dataset.to_table(
 )
 df = table.to_pandas()
 df = df.rename(columns={"product_name": "product_name_original"})
-print(df.dtypes)
+print(df[df["lang"] != "fr"])
 
 
 def extract_nom_fr(names):
@@ -47,8 +47,25 @@ def extract_nom_fr(names):
     return None
 
 
-df["product_name"] = df["product_name_original"].apply(extract_nom_fr)
+# Fonction pour nettoyer les catégories
+def clean_categories(categories):
+    if categories is None:
+        return None
 
+    # Diviser les catégories et nettoyer chacune individuellement
+    cleaned_categories = []
+    for cat in categories.split(","):
+        cat = cat.strip()
+        if cat.startswith("fr:"):  # on nettoie fr:
+            cleaned_categories.append(cat[3:])
+        elif ":" not in cat and cat:  # on rejete en: ou de: ...
+            cleaned_categories.append(cat)
+
+    return ",".join(cleaned_categories)  # Joindre la liste cleaned_categories
+
+
+df["product_name"] = df["product_name_original"].apply(extract_nom_fr)
+df["categories"] = df["categories"].apply(clean_categories)
 
 print(df.shape)
 filtre = (
