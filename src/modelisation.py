@@ -22,6 +22,10 @@ data['Produit'] = data['Produit'].str.normalize('NFKD').str.encode('ascii', erro
 # 3. TF-Idata Vectorization
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(data['Produit'])  # transforme en vecteur TF-Idata
+
+# Création du dossier 'modeles' s'il n'existe pas
+os.makedirs("modeles", exist_ok=True)
+
 # Sauvegarder le vocabulaire et les valeurs IDF dans un fichier JSON
 vocabulary = vectorizer.vocabulary_
 idf = vectorizer.idf_
@@ -53,9 +57,6 @@ svm_model = SVC(kernel='linear', probability=True)
 svm_model.fit(X_train, y_train)
 y_pred_svm = svm_model.predict(X_test)
 print(classification_report(y_test, y_pred_svm))
-
-# Création du dossier 'modeles' s'il n'existe pas
-os.makedirs("modeles", exist_ok=True)
 
 # Convertir et sauvegarder le modèle SVM en ONNX
 onnx_svm = convert_sklearn(svm_model, initial_types=initial_type)
