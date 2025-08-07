@@ -55,7 +55,8 @@ y_pred_svm = svm_model.predict(X_test)
 print(classification_report(y_test, y_pred_svm))
 
 # Création du dossier 'modeles' s'il n'existe pas
-#os.makedirs("modeles", exist_ok=True)
+os.makedirs("modeles", exist_ok=True)
+
 # Convertir et sauvegarder le modèle SVM en ONNX
 onnx_svm = convert_sklearn(svm_model, initial_types=initial_type)
 with open("modeles/svm_model.onnx", "wb") as f:
